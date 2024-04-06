@@ -5,7 +5,6 @@
 namespace
 {
     const std::vector<cv::Scalar> colors = {cv::Scalar(255, 255, 0), cv::Scalar(0, 255, 0), cv::Scalar(0, 255, 255), cv::Scalar(255, 0, 0)};
-
     const float INPUT_WIDTH = 640.0;
     const float INPUT_HEIGHT = 640.0;
     const float SCORE_THRESHOLD = 0.2;
@@ -38,15 +37,6 @@ namespace
         cv::imshow("Detected Class", *image);
         cv::waitKey(0);
         cv::destroyAllWindows();
-    }
-
-    cv::Mat GaussianBlurProcess(const cv::Mat &image)
-    {
-        cv::Mat gray_image;
-        cv::cvtColor(image, gray_image, cv::COLOR_BGR2GRAY);
-        cv::Mat blurred;
-        cv::GaussianBlur(gray_image, blurred, cv::Size(5, 5), 0);
-        return blurred;
     }
 }
 
@@ -237,10 +227,7 @@ void XReader::DetectSobelEdge(const cv::Mat &image)
     convertScaleAbs(grad_x, abs_grad_x);
     Sobel(image, grad_y, CV_16S, 0, 1, 3);
     convertScaleAbs(grad_y, abs_grad_y);
-
-    // 合并梯度
     cv::addWeighted(abs_grad_x, 0.5, abs_grad_y, 0.5, 0, grad);
-
     cv::imshow("Sobel Edge Detection", grad);
     cv::waitKey(0);
 }
@@ -256,4 +243,44 @@ void XReader::ExtractFigureEdge(const std::string &local_pic_dir)
     DetectCannyEdge(image);
     DetectLaplacianEdge(image);
     DetectSobelEdge(image);
+}
+
+void XReader::FigureSharpening(const std::string &local_pic_dir)
+{
+    cv::Mat image = cv::imread(local_pic_dir);
+    if (image.empty())
+    {
+        std::cout << "[XReader]Image load failed!" << std::endl;
+        return;
+    }
+
+    // 显示原始图像
+    cv::imshow("Original Image", image);
+
+    // 创建用于锐化的核（拉普拉斯核）
+    cv::Mat kernel = (cv::Mat_<float>(3, 3) 
+                    << 0, -1, 0,
+                      -1, 5, -1,
+                       0, -1, 0);
+    cv::Mat sharpenedImage;
+    // 使用filter2D函数应用核
+    cv::filter2D(image, sharpenedImage, image.depth(), kernel);
+    // 显示锐化后的图像
+    cv::imshow("Sharpened Image", sharpenedImage);
+    cv::waitKey(0);
+}
+
+void XReader::FigureGaussianBlurring(const std::string &local_pic_dir)
+{
+    cv::Mat image = cv::imread(local_pic_dir);
+    if (image.empty())
+    {
+        std::cout << "[XReader]Image load failed!" << std::endl;
+        return;
+    }
+    cv::imshow("Original Image", image);
+    cv::Mat blurred;
+    cv::GaussianBlur(image, blurred, cv::Size(5, 5), 0);
+    cv::imshow("Blured Image",blurred);
+    cv::waitKey(0);
 }

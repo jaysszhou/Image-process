@@ -12,4 +12,6 @@ int main(int argc, char **argv)
     xReader.ShowLocalPicture(picture_dir);
     xReader.ExtractORBFeatures(picture_dir);
     xReader.ExtractFigureEdge(picture_dir);
+    xReader.FigureSharpening(picture_dir);
+    xReader.FigureGaussianBlurring(picture_dir);
 }
