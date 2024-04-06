@@ -180,7 +180,7 @@ void XReader::ExtractORBFeatures(const std::string &local_pic_dir)
     cv::Mat image = cv::imread(local_pic_dir, cv::IMREAD_COLOR);
     if (image.empty())
     {
-        std::cerr << "Error: Image not found." << std::endl;
+        std::cout << "[XReader] Load picture from " << local_pic_dir << " failed " << std::endl;
         return;
     }
     cv::Mat grayImg;
@@ -197,4 +197,54 @@ void XReader::ExtractORBFeatures(const std::string &local_pic_dir)
     cv::drawKeypoints(image, keypoints, img_keypoints, cv::Scalar::all(-1), cv::DrawMatchesFlags::DEFAULT);
     cv::imshow("ORB KeyPoints", img_keypoints);
     cv::waitKey(0);
+}
+
+void XReader::DetectCannyEdge(const cv::Mat &image)
+{
+    std::cout << "[XReader] Show canny edge !" << std::endl;
+    cv::Mat edges;
+    cv::Canny(image, edges, 100, 200);
+    cv::imshow("Canny Edge Detection", edges);
+    cv::waitKey(0);
+}
+
+void XReader::DetectLaplacianEdge(const cv::Mat &image)
+{
+    std::cout << "[XReader] Show Laplacian edge !" << std::endl;
+    cv::Mat edges;
+    cv::Laplacian(image, edges, CV_16S, 3);
+    cv::convertScaleAbs(edges, edges);
+    cv::imshow("Laplacian Edge Detection", edges);
+    cv::waitKey(0);
+}
+
+void XReader::DetectSobelEdge(const cv::Mat &image)
+{
+    std::cout << "[XReader] Show Sobel edge !" << std::endl;
+    cv::Mat grad_x, grad_y;
+    cv::Mat abs_grad_x, abs_grad_y, grad;
+    // 计算x和y方向上的梯度
+    Sobel(image, grad_x, CV_16S, 1, 0, 3);
+    convertScaleAbs(grad_x, abs_grad_x);
+    Sobel(image, grad_y, CV_16S, 0, 1, 3);
+    convertScaleAbs(grad_y, abs_grad_y);
+
+    // 合并梯度
+    cv::addWeighted(abs_grad_x, 0.5, abs_grad_y, 0.5, 0, grad);
+
+    cv::imshow("Sobel Edge Detection", grad);
+    cv::waitKey(0);
+}
+
+void XReader::ExtractFigureEdge(const std::string &local_pic_dir)
+{
+    cv::Mat image = cv::imread(local_pic_dir, cv::IMREAD_COLOR);
+    if (image.empty())
+    {
+        std::cout << "[XReader] Load picture from " << local_pic_dir << " failed " << std::endl;
+        return;
+    }
+    DetectCannyEdge(image);
+    DetectLaplacianEdge(image);
+    DetectSobelEdge(image);
 }

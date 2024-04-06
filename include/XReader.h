@@ -25,11 +25,15 @@ public:
     };
     void ShowLocalPicture(const std::string &local_pic_dir);
     void ExtractORBFeatures(const std::string &local_pic_dir);
+    void ExtractFigureEdge(const std::string &local_pic_dir);
 
 private:
     std::vector<std::string> LoadClassList();
     void LoadNeuralNetwork(cv::dnn::Net *net, bool is_cuda);
     void RecognizePictureClassByYoLo5(const cv::Mat &image, cv::dnn::Net &net, const std::vector<std::string> &className, std::vector<DetectionClass> &output);
+    void DetectCannyEdge(const cv::Mat&image);
+    void DetectLaplacianEdge(const cv::Mat&image);
+    void DetectSobelEdge(const cv::Mat&image);
 };
 
 #endif

@@ -11,4 +11,5 @@ int main(int argc, char **argv)
     std::string picture_dir = argv[1];
     xReader.ShowLocalPicture(picture_dir);
     xReader.ExtractORBFeatures(picture_dir);
+    xReader.ExtractFigureEdge(picture_dir);
 }
