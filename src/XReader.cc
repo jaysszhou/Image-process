@@ -39,6 +39,15 @@ namespace
         cv::waitKey(0);
         cv::destroyAllWindows();
     }
+
+    cv::Mat GaussianBlurProcess(const cv::Mat &image)
+    {
+        cv::Mat gray_image;
+        cv::cvtColor(image, gray_image, cv::COLOR_BGR2GRAY);
+        cv::Mat blurred;
+        cv::GaussianBlur(gray_image, blurred, cv::Size(5, 5), 0);
+        return blurred;
+    }
 }
 
 std::vector<std::string> XReader::LoadClassList()
@@ -186,7 +195,7 @@ void XReader::ExtractORBFeatures(const std::string &local_pic_dir)
     cv::Mat grayImg;
     cv::cvtColor(image, grayImg, cv::COLOR_BGR2GRAY);
 
-    int nfeatures = 500;      // 最大特征点数量
+    int nfeatures = 2000;     // 最大特征点数量
     float scaleFactor = 1.2f; // 金字塔缩放因子
     int nlevels = 8;          // 金字塔层数
     cv::Ptr<cv::ORB> orb = cv::ORB::create(nfeatures, scaleFactor, nlevels);
@@ -238,7 +247,7 @@ void XReader::DetectSobelEdge(const cv::Mat &image)
 
 void XReader::ExtractFigureEdge(const std::string &local_pic_dir)
 {
-    cv::Mat image = cv::imread(local_pic_dir, cv::IMREAD_COLOR);
+    const cv::Mat image = cv::imread(local_pic_dir, cv::IMREAD_COLOR);
     if (image.empty())
     {
         std::cout << "[XReader] Load picture from " << local_pic_dir << " failed " << std::endl;
