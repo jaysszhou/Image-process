@@ -284,3 +284,48 @@ void XReader::FigureGaussianBlurring(const std::string &local_pic_dir)
     cv::imshow("Blured Image",blurred);
     cv::waitKey(0);
 }
+
+void XReader::FigureZoomInAndOut(const std::string &local_pic_dir){
+    printf("\n Zoom In-Out demo  \n ");
+	printf("------------------ \n");
+	printf(" * [u] -> Zoom in  \n");
+	printf(" * [d] -> Zoom out \n");
+	printf(" * [ESC] -> Close program \n \n");
+	cv::Mat image= cv::imread(local_pic_dir);
+	if (image.empty())
+	{
+		printf(" No data! -- Exiting the program \n");
+		return;
+	}
+
+	cv::Mat tmp = image;
+	cv::Mat dst = tmp;
+    std::string window_name = "Zoom in And out" ;
+	cv::namedWindow(window_name, cv::WINDOW_AUTOSIZE);
+	cv::imshow(window_name, dst);
+
+	while (true)
+	{
+		int c;
+		c = cv::waitKey(10);
+
+		if ((char)c == 27)
+		{
+			break;
+		}
+		if ((char)c == 'u')
+		{
+			pyrUp(tmp, dst, cv::Size(tmp.cols * 2, tmp.rows * 2));
+			printf("** Zoom In: Image x 2 \n");
+		}
+		else if ((char)c == 'd')
+		{
+			pyrDown(tmp, dst, cv::Size(tmp.cols / 2, tmp.rows / 2));
+			printf("** Zoom Out: Image / 2 \n");
+		}
+
+		imshow(window_name, dst);
+		tmp = dst;
+	}
+	return;
+}

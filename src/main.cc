@@ -14,4 +14,5 @@ int main(int argc, char **argv)
     xReader.ExtractFigureEdge(picture_dir);
     xReader.FigureSharpening(picture_dir);
     xReader.FigureGaussianBlurring(picture_dir);
+    // xReader.FigureZoomInAndOut(picture_dir);
 }

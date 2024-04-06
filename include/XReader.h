@@ -28,6 +28,7 @@ public:
     void ExtractFigureEdge(const std::string &local_pic_dir);
     void FigureSharpening(const std::string &local_pic_dir);
     void FigureGaussianBlurring(const std::string &local_pic_dir);
+    void FigureZoomInAndOut(const std::string&local_pic_dir);
 private:
     std::vector<std::string> LoadClassList();
     void LoadNeuralNetwork(cv::dnn::Net *net, bool is_cuda);
