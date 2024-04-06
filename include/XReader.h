@@ -3,6 +3,7 @@
 
 #include <opencv2/opencv.hpp>
 #include <opencv4/opencv2/dnn/dnn.hpp>
+#include <opencv2/features2d/features2d.hpp>
 
 class XReader
 {
@@ -23,6 +24,7 @@ public:
         cv::Rect box;
     };
     void ShowLocalPicture(const std::string &local_pic_dir);
+    void ExtractORBFeatures(const std::string &local_pic_dir);
 
 private:
     std::vector<std::string> LoadClassList();

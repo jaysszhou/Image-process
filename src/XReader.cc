@@ -1,5 +1,6 @@
 #include "XReader.h"
 #include <fstream>
+#include <vector>
 
 namespace
 {
@@ -30,12 +31,9 @@ namespace
             auto box = detection.box;
             auto classId = detection.class_id;
             const auto color = colors[classId % colors.size()];
-            std::cout << " classid == " << classId
-                      << " classlist == " << class_list[classId]
-                      << " and box " << box.x << " and " << box.y << std::endl;
             cv::rectangle(*image, box, color, 3);
             cv::rectangle(*image, cv::Point(box.x, box.y - 20), cv::Point(box.x + box.width, box.y), color, cv::FILLED);
-            cv::putText(*image, class_list[classId].c_str(), cv::Point(box.x, box.y - 5), cv::FONT_HERSHEY_SIMPLEX, 2.5, cv::Scalar(0, 0, 0));
+            cv::putText(*image, class_list[classId].c_str(), cv::Point(box.x, box.y - 5), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 0));
         }
         cv::imshow("Detected Class", *image);
         cv::waitKey(0);
@@ -57,7 +55,7 @@ std::vector<std::string> XReader::LoadClassList()
 
 void XReader::LoadNeuralNetwork(cv::dnn::Net *net, bool is_cuda)
 {
-    cv::dnn::Net result = cv::dnn::readNet("/home/jaysszhou/Documents/Algorithm/functions/Peception/vision/lib/weights/yolov5n.onnx");
+    cv::dnn::Net result = cv::dnn::readNet("/home/jaysszhou/Documents/Algorithm/functions/Peception/vision/lib/yolov5s.onnx");
     if (result.empty())
     {
         std::cerr << "Failed to load network." << std::endl;
@@ -96,7 +94,6 @@ void XReader::RecognizePictureClassByYoLo5(const cv::Mat &image, cv::dnn::Net &n
         cv::dnn::blobFromImage(input_image, blob, 1. / 255., cv::Size(INPUT_WIDTH, INPUT_HEIGHT), cv::Scalar(), true, false);
         net.setInput(blob);
         net.forward(outputs, net.getUnconnectedOutLayersNames());
-        std::cout << "outputs size == " << outputs.size();
     }
     catch (const cv::Exception &e)
     {
@@ -176,4 +173,28 @@ void XReader::ShowLocalPicture(const std::string &local_pic_dir)
     std::vector<DetectionClass> out_put_class;
     RecognizePictureClassByYoLo5(image, yolov5, class_list, out_put_class);
     VisualizeOutputResults(out_put_class, class_list, &image);
+}
+
+void XReader::ExtractORBFeatures(const std::string &local_pic_dir)
+{
+    cv::Mat image = cv::imread(local_pic_dir, cv::IMREAD_COLOR);
+    if (image.empty())
+    {
+        std::cerr << "Error: Image not found." << std::endl;
+        return;
+    }
+    cv::Mat grayImg;
+    cv::cvtColor(image, grayImg, cv::COLOR_BGR2GRAY);
+
+    int nfeatures = 500;      // 最大特征点数量
+    float scaleFactor = 1.2f; // 金字塔缩放因子
+    int nlevels = 8;          // 金字塔层数
+    cv::Ptr<cv::ORB> orb = cv::ORB::create(nfeatures, scaleFactor, nlevels);
+    std::vector<cv::KeyPoint> keypoints;
+    cv::Mat descriptors;
+    orb->detectAndCompute(image, cv::Mat(), keypoints, descriptors);
+    cv::Mat img_keypoints;
+    cv::drawKeypoints(image, keypoints, img_keypoints, cv::Scalar::all(-1), cv::DrawMatchesFlags::DEFAULT);
+    cv::imshow("ORB KeyPoints", img_keypoints);
+    cv::waitKey(0);
 }
