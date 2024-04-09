@@ -258,10 +258,11 @@ void XReader::FigureSharpening(const std::string &local_pic_dir)
     cv::imshow("Original Image", image);
 
     // 创建用于锐化的核（拉普拉斯核）
-    cv::Mat kernel = (cv::Mat_<float>(3, 3) 
-                    << 0, -1, 0,
+    cv::Mat kernel = (cv::Mat_<float>(3, 3)
+                          << 0,
+                      -1, 0,
                       -1, 5, -1,
-                       0, -1, 0);
+                      0, -1, 0);
     cv::Mat sharpenedImage;
     // 使用filter2D函数应用核
     cv::filter2D(image, sharpenedImage, image.depth(), kernel);
@@ -281,51 +282,115 @@ void XReader::FigureGaussianBlurring(const std::string &local_pic_dir)
     cv::imshow("Original Image", image);
     cv::Mat blurred;
     cv::GaussianBlur(image, blurred, cv::Size(5, 5), 0);
-    cv::imshow("Blured Image",blurred);
+    cv::imshow("Blured Image", blurred);
     cv::waitKey(0);
 }
 
-void XReader::FigureZoomInAndOut(const std::string &local_pic_dir){
+void XReader::FigureZoomInAndOut(const std::string &local_pic_dir)
+{
     printf("\n Zoom In-Out demo  \n ");
-	printf("------------------ \n");
-	printf(" * [u] -> Zoom in  \n");
-	printf(" * [d] -> Zoom out \n");
-	printf(" * [ESC] -> Close program \n \n");
-	cv::Mat image= cv::imread(local_pic_dir);
-	if (image.empty())
-	{
-		printf(" No data! -- Exiting the program \n");
-		return;
-	}
+    printf("------------------ \n");
+    printf(" * [u] -> Zoom in  \n");
+    printf(" * [d] -> Zoom out \n");
+    printf(" * [ESC] -> Close program \n \n");
+    cv::Mat image = cv::imread(local_pic_dir);
+    if (image.empty())
+    {
+        printf(" No data! -- Exiting the program \n");
+        return;
+    }
 
-	cv::Mat tmp = image;
-	cv::Mat dst = tmp;
-    std::string window_name = "Zoom in And out" ;
-	cv::namedWindow(window_name, cv::WINDOW_AUTOSIZE);
-	cv::imshow(window_name, dst);
+    cv::Mat tmp = image;
+    cv::Mat dst = tmp;
+    std::string window_name = "Zoom in And out";
+    cv::namedWindow(window_name, cv::WINDOW_AUTOSIZE);
+    cv::imshow(window_name, dst);
 
-	while (true)
-	{
-		int c;
-		c = cv::waitKey(10);
+    while (true)
+    {
+        int c;
+        c = cv::waitKey(10);
 
-		if ((char)c == 27)
-		{
-			break;
-		}
-		if ((char)c == 'u')
-		{
-			pyrUp(tmp, dst, cv::Size(tmp.cols * 2, tmp.rows * 2));
-			printf("** Zoom In: Image x 2 \n");
-		}
-		else if ((char)c == 'd')
-		{
-			pyrDown(tmp, dst, cv::Size(tmp.cols / 2, tmp.rows / 2));
-			printf("** Zoom Out: Image / 2 \n");
-		}
+        if ((char)c == 27)
+        {
+            break;
+        }
+        if ((char)c == 'u')
+        {
+            pyrUp(tmp, dst, cv::Size(tmp.cols * 2, tmp.rows * 2));
+            printf("** Zoom In: Image x 2 \n");
+        }
+        else if ((char)c == 'd')
+        {
+            pyrDown(tmp, dst, cv::Size(tmp.cols / 2, tmp.rows / 2));
+            printf("** Zoom Out: Image / 2 \n");
+        }
 
-		imshow(window_name, dst);
-		tmp = dst;
-	}
-	return;
+        imshow(window_name, dst);
+        tmp = dst;
+    }
+    return;
+}
+
+void XReader::AdaptiveFilterFigure(const std::string &local_pic_dir)
+{
+    cv::Mat image = cv::imread(local_pic_dir);
+    if (image.empty())
+    {
+        return;
+    }
+    if (image.channels() > 1)
+        cv::cvtColor(image, image, cv::COLOR_BGR2GRAY);
+
+    cv::Mat dst, dst2;
+    AdaptiveThreshold(image, dst, 255, 21, 10, XReader::adaptiveMethod::gaussianFilter); //
+    cv::adaptiveThreshold(image, dst2, 255, cv::ADAPTIVE_THRESH_MEAN_C, cv::THRESH_BINARY, 21, 10);
+    cv::namedWindow("src", cv::WINDOW_NORMAL);
+    cv::imshow("src", image);
+    cv::namedWindow("dst", cv::WINDOW_NORMAL);
+    cv::imshow("dst", dst);
+    cv::namedWindow("dst2", cv::WINDOW_NORMAL);
+    cv::imshow("dst2", dst2);
+    cv::waitKey(0);
+}
+
+void XReader::AdaptiveThreshold(cv::Mat &src, cv::Mat &dst, double Maxval, int Subsize, double c, adaptiveMethod method)
+{
+
+    if (src.channels() > 1)
+        cv::cvtColor(src, src, cv::COLOR_BGR2GRAY);
+
+    cv::Mat smooth;
+    switch (method)
+    {
+    case meanFilter:
+        cv::blur(src, smooth, cv::Size(Subsize, Subsize));
+        break;
+    case gaussianFilter:
+        cv::GaussianBlur(src, smooth, cv::Size(Subsize, Subsize), 0, 0);
+        break;
+    case medianFilter:
+        cv::medianBlur(src, smooth, Subsize);
+        break;
+    default:
+        break;
+    }
+
+    smooth = smooth - c;
+    src.copyTo(dst);
+    for (int r = 0; r < src.rows; ++r)
+    {
+        const uchar *srcptr = src.ptr<uchar>(r);
+        const uchar *smoothptr = smooth.ptr<uchar>(r);
+        uchar *dstptr = dst.ptr<uchar>(r);
+        for (int c = 0; c < src.cols; ++c)
+        {
+            if (srcptr[c] > smoothptr[c])
+            {
+                dstptr[c] = Maxval;
+            }
+            else
+                dstptr[c] = 0;
+        }
+    }
 }
